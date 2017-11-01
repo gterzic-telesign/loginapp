@@ -23,6 +23,7 @@
     "mongoose": "*",
     "passport": "*",
     "passport-http": "*",
-    "passport-local": "*"
+    "passport-local": "*",
+    "reload": "^2.2.2"
   }
 }
