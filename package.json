@@ -24,6 +24,7 @@
     "passport": "*",
     "passport-http": "*",
     "passport-local": "*",
-    "reload": "^2.2.2"
+    "reload": "^2.2.2",
+    "telesignsdk": "^2.0.2"
   }
 }

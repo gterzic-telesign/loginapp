@@ -5,6 +5,8 @@ var LocalStrategy = require('passport-local').Strategy;
 
 var User = require('../models/user');
 
+var verifyCode = "";
+
 // Register
 router.get('/register', function(req, res){
 	res.render('register');
@@ -15,6 +17,23 @@ router.get('/login', function(req, res){
 	res.render('login');
 });
 
+// Verify User
+router.post('/verify', function(req, res){
+	var code = req.body.code;
+	req.checkBody('code', 'Code is required').notEmpty();
+	var errors = req.validationErrors();
+
+	if(!errors){
+		if(code == verifyCode){
+			res.redirect('/');
+		}
+		else {
+			req.flash('error_msg', 'Code is incorrect!');
+			res.redirect('/users/login');
+		}
+	}
+});
+
 // Register User
 router.post('/register', function(req, res){
 	var name = req.body.name;
@@ -22,6 +41,7 @@ router.post('/register', function(req, res){
 	var username = req.body.username;
 	var password = req.body.password;
 	var password2 = req.body.password2;
+	var phone_number = req.body.phone_number;
 
 	// Validation
 	req.checkBody('name', 'Name is required').notEmpty();
@@ -30,6 +50,7 @@ router.post('/register', function(req, res){
 	req.checkBody('username', 'Username is required').notEmpty();
 	req.checkBody('password', 'Password is required').notEmpty();
 	req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
+	req.checkBody('phone_number', 'Phone Number is required').notEmpty();
 
 	var errors = req.validationErrors();
 
@@ -49,7 +70,8 @@ router.post('/register', function(req, res){
 					name: name,
 					email:email,
 					username: username,
-					password: password
+					password: password,
+					phone_number:phone_number
 				});
 
 				User.createUser(newUser, function(err, user){
@@ -95,9 +117,14 @@ passport.deserializeUser(function(id, done) {
 });
 
 router.post('/login',
-	passport.authenticate('local', {successRedirect:'/', failureRedirect:'/users/login',failureFlash: true}),
+	passport.authenticate('local', {failureRedirect:'/users/login',failureFlash: true}),
 	function(req, res) {
-		res.redirect('/');
+		User.verify(req.user.phone_number, function(err, code){
+			if(!err){
+				verifyCode = code;
+				res.render('verify');
+			}
+		});
 	});
 
 router.get('/logout', function(req, res){
